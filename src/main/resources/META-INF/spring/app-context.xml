@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+    <context:property-placeholder location="classpath:eget2.properties" />
+
+    <!-- eget2サービス本体 -->
+    <bean id="eget2Service" class="am.ik.eget2.bootstrap.Eget2Service">
+        <property name="anyPageTask" ref="anyPageTask" />
+        <property name="specificPageTask" ref="specificPageTask" />
+        <property name="movieTask" ref="movieTask" />
+        <property name="anyPageThreadCount" value="${any.page.thread.count}" />
+        <property name="specificPageThreadCount" value="${specific.page.thread.count}" />
+        <property name="movieThreadCount" value="${movie.thread.count}" />
+    </bean>
+
+    <!-- 任意ページ取得タスク -->
+    <bean id="anyPageTask" class="am.ik.eget2.task.anypage.AnyPageTask">
+        <property name="anyPageQueue" ref="anyPageQueue" />
+        <property name="specificPageQueue" ref="specificPageQueue" />
+        <property name="visitedUrl" ref="visitedUrl" />
+        <property name="rootUrl" ref="rootUrl" />
+        <property name="anyPageUrlPrefix" value="${any.page.url.prefix}" />
+        <property name="specificPageTitlePrefix" value="${specific.page.title.prefix}" />
+    </bean>
+
+    <!-- 特定ページ取得タスク -->
+    <bean id="specificPageTask" class="am.ik.eget2.task.specificpage.SpecificPageTask">
+        <property name="specificPageQueue" ref="specificPageQueue" />
+        <property name="movieQueue" ref="movieQueue" />
+        <property name="moviePageUrlPrefix" value="${movie.page.url.prefix}" />
+    </bean>
+
+    <!-- 動画取得タスク -->
+    <bean id="movieTask" class="am.ik.eget2.task.movie.MovieTask">
+        <property name="movieQueue" ref="movieQueue" />
+        <property name="downloadDir" ref="downloadDir" />
+        <property name="cookieFactory" ref="cookieFactory" />
+    </bean>
+
+    <!-- 訪問開始URL -->
+    <bean id="rootUrl" class="java.lang.String">
+        <constructor-arg index="0" value="${root.url}" />
+    </bean>
+
+    <!-- ダウンロード先フォルダ -->
+    <bean id="downloadDir" class="java.lang.String">
+        <constructor-arg index="0" value="${download.dir}" />
+    </bean>
+
+    <!-- シンプルなキュー実装 -->
+    <!-- <import resource="simple-context.xml" /> -->
+    <!-- Hazelcastキュー実装 -->
+    <import resource="hazelcast-context.xml" />
+
+    <!-- BitShareからのクッキー取得 -->
+    <import resource="bitshare-context.xml" />
+</beans>

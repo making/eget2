@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 初回時にHazelcastのキューなどクリアするか -->
+    <bean id="claerOnInit" class="java.lang.Boolean">
+        <constructor-arg value="${hazelcast.clear.on.init}" />
+    </bean>
+
+    <!-- 任意ページキュー -->
+    <bean id="anyPageQueue" class="am.ik.eget2.hazelcast.HazelcastTaskQueue">
+        <constructor-arg name="queueName" value="anyPageQueue" />
+        <constructor-arg name="hazelcastInstance" ref="hazelcastInstance" />
+        <property name="clearOnInit" ref="claerOnInit" />
+    </bean>
+
+    <!-- 特定ページキュー -->
+    <bean id="specificPageQueue" class="am.ik.eget2.hazelcast.HazelcastTaskQueue">
+        <constructor-arg name="queueName" value="specificPageQueue" />
+        <constructor-arg name="hazelcastInstance" ref="hazelcastInstance" />
+        <property name="clearOnInit" ref="claerOnInit" />
+    </bean>
+
+    <!-- 動画キュー -->
+    <bean id="movieQueue" class="am.ik.eget2.hazelcast.HazelcastTaskQueue">
+        <constructor-arg name="queueName" value="movieQueue" />
+        <constructor-arg name="hazelcastInstance" ref="hazelcastInstance" />
+        <property name="clearOnInit" ref="claerOnInit" />
+    </bean>
+
+    <!-- 訪問済みURL -->
+    <bean id="visitedUrl" class="am.ik.eget2.hazelcast.HazelcastVisited">
+        <constructor-arg name="visitedName" value="visitedUrl" />
+        <constructor-arg name="hazelcastInstance" ref="hazelcastInstance" />
+<!--         <property name="clearOnInit" ref="claerOnInit" /> -->
+    <property name="clearOnInit" value="true" />
+    </bean>
+
+    <!-- Hazelcatの設定 -->
+    <bean id="hazelcastInstance" class="am.ik.eget2.hazelcast.HazelcastInstanceFactory">
+        <property name="addresses">
+            <list>
+                <!-- <value>127.0.0.1:5701</value> -->
+                <value>${hazelcast.address}</value>
+            </list>
+        </property>
+    </bean>
+</beans>

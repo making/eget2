@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 任意ページキュー -->
+    <bean id="anyPageQueue" class="am.ik.eget2.queue.SimpleTaskQueue" />
+    <!-- 特定ページキュー -->
+    <bean id="specificPageQueue" class="am.ik.eget2.queue.SimpleTaskQueue" />
+    <!-- 動画キュー -->
+    <bean id="movieQueue" class="am.ik.eget2.queue.SimpleTaskQueue" />
+    <!-- 訪問済みURL -->
+    <bean id="visitedUrl" class="am.ik.eget2.visited.SimpleVisited" />
+</beans>
