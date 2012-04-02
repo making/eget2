@@ -1,1 +1,11 @@
+src/main/resources/eget2.propertiesを編集して適当に設定してください。
 
+Hazelcastを起動してください。
+
+メインプログラムの実行方法
+
+$ mvn exec:java -Dexec.mainClass=am.ik.eget2.bootstrap.Bootstrap
+
+ゴミファイルの削除方法
+
+$ mvn exec:java -Dexec.mainClass=am.ik.eget2.bootstrap.CleanUpDir
