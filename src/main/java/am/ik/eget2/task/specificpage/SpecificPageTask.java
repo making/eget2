@@ -8,11 +8,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 import am.ik.eget2.queue.TaskQueue;
 import am.ik.eget2.task.movie.Movie;
 
-public class SpecificPageTask implements Runnable {
+public class SpecificPageTask implements Runnable, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory
             .getLogger(SpecificPageTask.class);
@@ -68,6 +70,9 @@ public class SpecificPageTask implements Runnable {
         LOGGER.trace("end specific page task");
     }
 
-    public static void main(String[] args) {
-    }
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(specificPageQueue);
+        Assert.notNull(movieQueue);
+        Assert.notNull(moviePageUrlPrefix);
+    };
 }

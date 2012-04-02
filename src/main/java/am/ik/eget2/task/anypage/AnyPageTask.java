@@ -8,6 +8,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 import am.ik.eget2.queue.TaskQueue;
 import am.ik.eget2.task.specificpage.SpecificPage;
@@ -90,6 +91,11 @@ public class AnyPageTask implements Runnable, InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        Assert.notNull(anyPageQueue);
+        Assert.notNull(specificPageQueue);
+        Assert.notNull(visitedUrl);
+        Assert.notNull(anyPageUrlPrefix);
+        Assert.notNull(specificPageTitlePrefix);
         if (rootUrl != null && rootUrl.length() > 0) {
             // 訪問開始ページを追加
             LOGGER.info("visit from {}", rootUrl);
