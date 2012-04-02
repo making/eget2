@@ -38,7 +38,6 @@ public class HazelcastDownloadMonitor extends AbstractDownloadMonitor implements
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        workingMap.clear();
         if (clearOnInit) {
             finishedMap.clear();
         }
