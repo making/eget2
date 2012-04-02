@@ -128,10 +128,12 @@ public class MovieTask implements Runnable {
             // 50Xの場合はリトライ
             LOGGER.warn("{} error retry {}", statusCode, movie);
             try {
-                Thread.sleep(1000);
+                int count = movie.getFailedNum().get();
+                long sleep = (count + 1) * 1000;
+                Thread.sleep(sleep);
             } catch (InterruptedException e) {
             }
-            if (movie.getFailedNum().getAndIncrement() < 3) {
+            if (movie.getFailedNum().getAndIncrement() < 5) {
                 download(movie);
             } else {
                 LOGGER.error("cannot download {}", movie);
