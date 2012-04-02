@@ -16,17 +16,21 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 
 import am.ik.eget2.cookie.CookieFactory;
 import am.ik.eget2.queue.TaskQueue;
+import am.ik.eget2.task.movie.download.DownloadMonitor;
 
-public class MovieTask implements Runnable {
+public class MovieTask implements Runnable, InitializingBean {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(MovieTask.class);
 
     private TaskQueue<Movie> movieQueue;
     private String downloadDir;
     private CookieFactory cookieFactory;
+    private DownloadMonitor downloadMonitor;
 
     public void setMovieQueue(TaskQueue<Movie> movieQueue) {
         this.movieQueue = movieQueue;
@@ -38,6 +42,10 @@ public class MovieTask implements Runnable {
 
     public void setCookieFactory(CookieFactory cookieFactory) {
         this.cookieFactory = cookieFactory;
+    }
+
+    public void setDownloadMonitor(DownloadMonitor downloadMonitor) {
+        this.downloadMonitor = downloadMonitor;
     }
 
     public synchronized static File createDir(String baseDir, Movie movie)
@@ -68,8 +76,9 @@ public class MovieTask implements Runnable {
             try {
                 download(movie);
             } catch (Exception e) {
-                if (movie.getFailedNum().getAndIncrement() < 3) {
-                    LOGGER.warn("retry {} because {}", movie, e.getMessage());
+                if (movie.getFailedNum().getAndIncrement() < 5) {
+                    LOGGER.warn("retry " + movie, e);
+                    sleepForFail(movie);
                     movieQueue.push(movie);
                 } else {
                     LOGGER.error("failed donwload " + movie, e);
@@ -90,9 +99,9 @@ public class MovieTask implements Runnable {
             // HTTPステータスコードが200のときのみ
             String filename = getFilename(method);
             if (filename == null) {
-                // throw new RuntimeException("filename is null? @" + movie);
-                LOGGER.warn("filename is null @{}", movie);
-                return;
+                throw new RuntimeException("filename is null? @" + movie);
+                // LOGGER.error("filename is null @{}", movie);
+                // return;
             }
             if (checkConcated(targetDir, filename)) {
                 LOGGER.debug("already concated {}", url);
@@ -110,30 +119,30 @@ public class MovieTask implements Runnable {
                 if (!rar.exists() || alreadyLogExists) {
                     // rarがまだない、または存在しているがログが残っている(未完了で終了)
                     LOGGER.info("start download {}", movie);
+                    downloadMonitor.start(movie);
                     input = new BufferedInputStream(
                             method.getResponseBodyAsStream());
                     BufferedOutputStream output = new BufferedOutputStream(
                             new FileOutputStream(rar));
                     IOUtils.copyLarge(input, output);
                     LOGGER.info("end download {}", movie);
+                    downloadMonitor.success(movie);
                 } else {
                     LOGGER.debug("already downloaded {}", url);
                 }
                 // 成功時にログを削除
                 FileUtils.deleteQuietly(log);
+            } catch (IOException e) {
+                downloadMonitor.fail(movie);
+                throw e;
             } finally {
                 IOUtils.closeQuietly(input);
             }
         } else if (statusCode >= 500 && statusCode < 600) {
-            // 50Xの場合はリトライ
-            LOGGER.warn("{} error retry {}", statusCode, movie);
-            try {
-                int count = movie.getFailedNum().get();
-                long sleep = (count + 1) * 1000;
-                Thread.sleep(sleep);
-            } catch (InterruptedException e) {
-            }
             if (movie.getFailedNum().getAndIncrement() < 5) {
+                // 50Xの場合はリトライ
+                LOGGER.warn("{} error retry {}", statusCode, movie);
+                sleepForFail(movie);
                 download(movie);
             } else {
                 LOGGER.error("cannot download {}", movie);
@@ -141,6 +150,15 @@ public class MovieTask implements Runnable {
         } else {
             throw new RuntimeException("failed to download " + movie + " ("
                     + statusCode + ")");
+        }
+    }
+
+    private void sleepForFail(Movie movie) {
+        try {
+            int count = movie.getFailedNum().get();
+            long sleep = Math.max(1, count) * 1000;
+            Thread.sleep(sleep);
+        } catch (InterruptedException e) {
         }
     }
 
@@ -181,5 +199,13 @@ public class MovieTask implements Runnable {
         return new File(targetDir, base + ".wmv").exists()
                 || new File(targetDir, base + ".avi").exists()
                 || new File(targetDir, base + ".AVI").exists();
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Assert.notNull(movieQueue);
+        Assert.notNull(downloadDir);
+        Assert.notNull(cookieFactory);
+        Assert.notNull(downloadMonitor);
     }
 }

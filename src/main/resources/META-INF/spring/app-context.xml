@@ -38,6 +38,7 @@
         <property name="movieQueue" ref="movieQueue" />
         <property name="downloadDir" ref="downloadDir" />
         <property name="cookieFactory" ref="cookieFactory" />
+        <property name="downloadMonitor" ref="downloadMonitor" />
     </bean>
 
     <!-- 訪問開始URL -->

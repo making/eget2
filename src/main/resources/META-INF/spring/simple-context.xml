@@ -11,4 +11,6 @@
     <bean id="movieQueue" class="am.ik.eget2.queue.SimpleTaskQueue" />
     <!-- 訪問済みURL -->
     <bean id="visitedUrl" class="am.ik.eget2.visited.SimpleVisited" />
+    <!-- ダウンロード監視 -->
+    <bean id="downloadMonitor" class="am.ik.eget2.task.movie.download.SimpleDownloadMonitor" />
 </beans>
